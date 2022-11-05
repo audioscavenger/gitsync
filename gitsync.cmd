@@ -37,32 +37,19 @@ IF NOT EXIST "%BACKUP_FOLDER%\" set BACKUP_FOLDER=%~dp0\backup
 title %~n0 %version% by %author%: syncing %PROJECT%
 call :local_backup
 call :getBuildVersion
-pause
 
 call :fetch
-pause
 call :status_uptodate && goto :end
-pause
 call :status_ff       && call :pull_ff
-pause
 call :status_uptodate && goto :end
-pause
 call :status_diverged && call :pull_merge
-pause
 call :status_uptodate && goto :end
-pause
 call :status_modified && call :add
-pause
 call :commitMessage
-pause
 call :local_backup_named %commitFile% %buildName%
-pause
 call :createTag %commitFile% %buildVersion%
-pause
 call :commit %commitFile%
-pause
 call :push
-pause
 goto :end
 
 REM git config merge.tool vimdiff
