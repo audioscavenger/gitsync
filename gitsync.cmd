@@ -31,6 +31,8 @@ set projectConfig=%PROJECT%.cmd
 :: If your project does not have such a file, and buildVersionAutomated=empty, your will be prompted for a version == not unattended
 :: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
 set buildVersionAutomated=
+:: textFiles are textFiles extensions, add your own to the list
+set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
 
 :prechecks
 call "%~dpn0.cfg.cmd" >NUL 2>&1
@@ -234,7 +236,7 @@ goto :EOF
 
 :add
 echo %HIGH%%b%  %~0 %END% 1>&2
-FOR %%F in (*.cmd %PROJECT%\*.cmd %PROJECT%\x64\*.cmd %PROJECT%\x86\*.cmd) DO %PROJECT%\bin\busybox unix2dos %%F
+where busybox >NUL 2>&1 && FOR %%F in ('dir /b /s %textFiles%') DO busybox unix2dos %%F
 git add .
 exit /b %ERRORLEVEL%
 goto :EOF
