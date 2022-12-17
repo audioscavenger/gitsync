@@ -33,6 +33,8 @@ set projectConfig=%PROJECT%.cmd
 set buildVersionAutomated=
 :: textFiles are textFiles extensions, add your own to the list
 set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
+:: is true, process textFiles with busybox unix2dos before :local_backup
+set doUnix2dos=true
 
 :prechecks
 call "%~dpn0.cfg.cmd" >NUL 2>&1
@@ -120,6 +122,8 @@ goto :EOF
 
 :local_backup
 echo %HIGH%%b%  %~0 %END% 1>&2
+
+IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
 
 md "%BACKUP_FOLDER%" 2>NUL
 del /f /q "%BACKUP_FOLDER%\%PROJECT%.7z.tmp*" 2>NUL
@@ -236,7 +240,6 @@ goto :EOF
 
 :add
 echo %HIGH%%b%  %~0 %END% 1>&2
-where busybox >NUL 2>&1 && FOR %%F in ('dir /b /s %textFiles%') DO busybox unix2dos %%F
 git add .
 exit /b %ERRORLEVEL%
 goto :EOF
