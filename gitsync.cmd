@@ -2,26 +2,35 @@
 pushd %~dp0
 
 :top
-set version=2.0.11
+set version=2.0.12
 set author=audioscavenger
 
 :defaults
-set WHAT2BACKUP=%~dp0\*
-set WHAT2EXCLUDE=-xr!-xr!*.7z -xr!*.log -xr!.svn -xr!.git
-set BACKUP_FOLDER=%~dp0\backup
-set rotation=20
 set commitFile=commit.txt
 set editor=notepad
 set removeDangling=true
-set buildVersion=
 set PROJECT=%~dp0
 for %%a in (%PROJECT:\= %) DO set PROJECT=%%a
 
 :custom
-REM set PROJECT=nQpuppeteer
-REM set WHAT2BACKUP=%~dp0\%PROJECT% %~dp0\%PROJECT%.cmd %~dp0Canon-list.csv %~dp0Xerox-list.csv
-set WHAT2EXCLUDE=%WHAT2EXCLUDE% -xr!uploads -xr!nQ
-REM set BACKUP_FOLDER=somewhereElse
+:: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
+set WHAT2BACKUP=%~dp0\*
+:: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
+set WHAT2EXCLUDE=-xr!-xr!*.7z -xr!*.log -xr!.svn -xr!.git
+:: BACKUP_FOLDER=%~dp0\backup by default, defaine another path here
+set BACKUP_FOLDER=%~dp0\backup
+:: rotation=how many backup-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z to append to the main backup.7z before rebuilding it from scratch
+set rotation=20
+:: editor must be able to lock on the commit file, notepad does that, notepad++ does not. Test with your own
+set editor=notepad
+:: PROJECT= should match the root folder
+REM set PROJECT=gitsync
+:: projectConfig= can be empty == the main batch file that holds a line that says "set version=x.y.z", scrapped to fill in commit file header
+set projectConfig=%PROJECT%.cmd
+:: buildVersion= a version string like x.y.z used as header in the commit file, coming from %projectConfig%
+:: If your project does not have such a file, and buildVersionAutomated=empty, your will be prompted for a version == not unattended
+:: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
+set buildVersionAutomated=
 
 :prechecks
 IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
@@ -165,9 +174,10 @@ goto :EOF
 :getBuildVersion
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-IF EXIST %PROJECT%.cmd  for /F "tokens=3 delims== " %%v in ('findstr /B /C:"set version=" %PROJECT%.cmd') DO set buildVersion=%%v
+IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
 IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /B /C:"version=" README.md') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion set /a buildVersion=buildVersion? 
+IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
+IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
 
 goto :EOF
 
@@ -215,12 +225,7 @@ goto :EOF
 :status_uptodate
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-git status | findstr /C:"Untracked files:" && exit /b 1
-git status | findstr /C:"Changes not staged for commit:" && exit /b 1
-git status | findstr /C:"have diverged" && exit /b 1
-git status | findstr /C:"but you are still merging" && exit /b 1
-
-git status | findstr /C:"Your branch is up to date" >NUL || exit /b 1
+git status | findstr /C:"nothing to commit" && exit /b 0
 
 git status
 exit /b 1
