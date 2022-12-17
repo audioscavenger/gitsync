@@ -1,8 +1,11 @@
 release 2.0.13 cfg
-    - 2.0.13 now using gitsync.cfg.cmd
-    - 2.0.12 added gitsync-template.cfg
-    	modified:   .gitignore
+        - 2.0.13 now using gitsync.cfg.cmd
+        - 2.0.12 added gitsync-template.cfg
+        	modified:   .gitignore
+        	modified:   gitsync.cmd
+    	modified:   backup/gitsync.7z
     	modified:   gitsync.cmd
+    	modified:   commit.gitsync.2.0.13.txt
 	modified:   backup/gitsync.7z
-	modified:   gitsync.cmd
+	modified:   gitsync.cfg.cmd
 	modified:   commit.gitsync.2.0.13.txt
