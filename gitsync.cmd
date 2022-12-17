@@ -49,8 +49,8 @@ IF NOT EXIST "%BACKUP_FOLDER%\" set BACKUP_FOLDER=%~dp0\backup
 
 :main
 title %~n0 %version% by %author%: syncing %PROJECT%
-call :local_backup
 call :getBuildVersion
+call :local_backup
 
 call :fetch
 call :status_uptodate && goto :end
@@ -64,6 +64,7 @@ call :local_backup_named %commitFile% %buildName%
 call :createTag %commitFile% %buildVersion%
 call :commit %commitFile%
 call :push
+call :dos2unix
 goto :end
 
 REM git config merge.tool vimdiff
@@ -122,8 +123,6 @@ goto :EOF
 
 :local_backup
 echo %HIGH%%b%  %~0 %END% 1>&2
-
-IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
 
 md "%BACKUP_FOLDER%" 2>NUL
 del /f /q "%BACKUP_FOLDER%\%PROJECT%.7z.tmp*" 2>NUL
@@ -294,6 +293,11 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 REM git push
 git push --tags --set-upstream origin master
 exit /b %ERRORLEVEL%
+goto :EOF
+
+:dos2unix
+echo %HIGH%%b%  %~0 %END% 1>&2
+IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
 goto :EOF
 
 :set_colors
