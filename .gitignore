@@ -1,6 +1,5 @@
 # ---> this project
-gitsync-*.cfg.cmd
-!gitsync-template.cfg.cmd
+# gitsync.cfg.cmd
 
 # ---> Windows
 # Windows thumbnail cache files
