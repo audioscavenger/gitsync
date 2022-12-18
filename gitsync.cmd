@@ -65,7 +65,7 @@ call :local_backup_named %commitFile% %buildName%
 call :createTag %commitFile% %buildVersion%
 call :commit %commitFile%
 call :push
-call :dos2unix
+call :unix2dos
 goto :end
 
 REM git config merge.tool vimdiff
@@ -296,7 +296,7 @@ git push --tags --set-upstream origin master
 exit /b %ERRORLEVEL%
 goto :EOF
 
-:dos2unix
+:unix2dos
 echo %HIGH%%b%  %~0 %END% 1>&2
 IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
 goto :EOF
