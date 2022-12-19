@@ -1,5 +1,7 @@
 # ---> this project
-# gitsync.cfg.cmd
+*.cfg_custom.cmd
+/backup
+commit.*.txt
 
 # ---> Windows
 # Windows thumbnail cache files

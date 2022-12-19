@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.14
+set version=2.0.15
 set author=audioscavenger
 
 :defaults
@@ -37,7 +37,7 @@ set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
 set doUnix2dos=true
 
 :prechecks
-call "%~dpn0.cfg.cmd" >NUL 2>&1
+call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
 IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
 :: redirect origin: git remote set-url origin https://gitea.derewonko.com/audioscavenger/nQpupeteer
 git config core.autocrlf true
