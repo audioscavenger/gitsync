@@ -54,7 +54,7 @@ call :local_backup
 
 call :fetch
 call :status_uptodate && goto :end
-call :status_master   && call :pull_force
+call :status_master   && call :rename_master
 call :status_uptodate && goto :end
 call :status_ff       && call :pull_ff
 call :status_uptodate && goto :end
@@ -69,7 +69,7 @@ call :push
 call :unix2dos
 goto :end
 
-REM redirect origin: git remote set-url origin https://gitea.derewonko.com/audioscavenger/gitsync
+REM redirect origin: git remote set-url origin https://github.com/user/gitsync
 REM git config merge.tool vimdiff
 REM git config merge.conflictstyle diff3
 REM git config mergetool.prompt false
@@ -212,14 +212,34 @@ goto :EOF
 
 :pull_force
 echo %HIGH%%b%  %~0 %END% 1>&2
+git pull --force || git reset --hard origin/main
+exit /b %ERRORLEVEL%
+goto :EOF
+
+:rename_master
+echo %HIGH%%b%  %~0 %END% 1>&2
 :: for cases such as: Your configuration specifies to merge with the ref 'refs/heads/master'
 :: git has renamed master to main since 2020 but people did not notice. Including me.
 :: https://www.git-tower.com/learn/git/faq/git-rename-master-to-main
-git pull --force || git reset --hard origin/main
+REM git checkout master
+REM git branch -a
+git symbolic-ref HEAD refs/heads/main
+git remote set-head origin -a
+git remote set-head origin main
 git branch -m master main
-git push -u origin main && git push origin --delete master
+git branch -d master | findstr /I /C:"not fully merged" && (
+  
+)
+git push -u origin main
+git push origin --delete master || (
+  echo:
+  echo NOW go to your git^>Settings^>Branches and make the %HIGH%main%end% branch the default
+  pause
+  git push origin --delete master
+)
 REM branch 'main' set up to track 'origin/main'.
-
+REM remote: Gitea: branch master is the default branch and cannot be deleted
+REM ! [remote rejected] master (pre-receive hook declined)
 exit /b %ERRORLEVEL%
 goto :EOF
 
@@ -262,7 +282,7 @@ goto :EOF
 :add
 echo %HIGH%%b%  %~0 %END% 1>&2
 :: git rm --cached `git ls-files -i -c --exclude-from=.gitignore` 
-for /f %%a in ('git ls-files -i -c --exclude-from=.gitignore') DO git rm --cached %%a
+for /f "tokens=*" %%a in ('git ls-files -i -c --exclude-from=.gitignore') DO git rm --cached "%%a"
 git add .
 git status
 exit /b %ERRORLEVEL%
@@ -308,7 +328,15 @@ goto :EOF
 :commit commitFile
 echo %HIGH%%b%  %~0 %END% 1>&2
 
+REM attrib /S -R >NUL 2>&1
+icacls .git       /q /c /t /reset
+REM The tag present in the reparse point buffer is invalid.
+
 git commit -a -F %1
+REM error: unable to create temporary file: Invalid argument      -->.git was read-only
+REM error: install-DS-1-product.cmd: failed to insert into database
+REM error: unable to index file 'install-DS-1-product.cmd'
+REM fatal: updating files failed
 
 exit /b %ERRORLEVEL%
 goto :EOF
@@ -317,6 +345,11 @@ goto :EOF
 echo %HIGH%%b%  %~0 %END% 1>&2
 REM git push
 git push origin main --tags --set-upstream 
+
+ REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
+REM error: failed to push some refs to 'https://github.com/user/project'
+REM hint: Updates were rejected because the tag already exists in the remote.
+
 exit /b %ERRORLEVEL%
 goto :EOF
 
