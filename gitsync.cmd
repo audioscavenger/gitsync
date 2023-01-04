@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.19
+set version=2.0.20
 set author=audioscavenger
 
 :defaults
@@ -306,7 +306,12 @@ set commitFile=%1
 set buildVersion=%2
 
 git tag -d %buildVersion%
-git push %buildVersion% --delete origin 
+git push --delete origin %buildVersion%
+:: failure to delete remote tage will simply output an error when pushing later on:
+ REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
+REM error: failed to push some refs to 'https://github.com/user/project'
+REM hint: Updates were rejected because the tag already exists in the remote.
+
 git tag -a %buildVersion% --file=%commitFile%
 :: what to do with error: failed to push some refs to 'https://git/name/project'?
 
@@ -316,8 +321,8 @@ goto :EOF
 :commit commitFile
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-REM attrib /S -R >NUL 2>&1
-icacls .git       /q /c /t /reset
+attrib /S -R >NUL 2>&1
+REM icacls .git       /q /c /t /reset
 REM The tag present in the reparse point buffer is invalid.
 
 git commit -a -F %1
@@ -333,10 +338,6 @@ goto :EOF
 echo %HIGH%%b%  %~0 %END% 1>&2
 REM git push
 git push origin main --tags --set-upstream 
-
- REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
-REM error: failed to push some refs to 'https://github.com/user/project'
-REM hint: Updates were rejected because the tag already exists in the remote.
 
 exit /b %ERRORLEVEL%
 goto :EOF
