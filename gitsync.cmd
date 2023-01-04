@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.16
+set version=2.0.18
 set author=audioscavenger
 
 :defaults
@@ -54,6 +54,8 @@ call :local_backup
 
 call :fetch
 call :status_uptodate && goto :end
+call :status_master   && call :pull_force
+call :status_uptodate && goto :end
 call :status_ff       && call :pull_ff
 call :status_uptodate && goto :end
 call :status_diverged && call :pull_merge
@@ -101,7 +103,7 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 :: REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM 
 :: REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM 
 
-git merge --ff-only origin/master || git reset --hard origin/master
+git merge --ff-only origin/main || git reset --hard origin/main
 
 :: REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM 
 :: REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM REM 
@@ -201,7 +203,7 @@ goto :EOF
 
 :pull_merge
 echo %HIGH%%b%  %~0 %END% 1>&2
-git merge origin/master && exit /b 0
+git merge origin/main && exit /b 0
 git add .
 git status >>%commitFile%
 git commit -a -F %commitFile%
@@ -210,7 +212,14 @@ goto :EOF
 
 :pull_force
 echo %HIGH%%b%  %~0 %END% 1>&2
-git pull --force || git reset --hard origin/master
+:: for cases such as: Your configuration specifies to merge with the ref 'refs/heads/master'
+:: git has renamed master to main since 2020 but people did not notice. Including me.
+:: https://www.git-tower.com/learn/git/faq/git-rename-master-to-main
+git pull --force || git reset --hard origin/main
+git branch -m master main
+git push -u origin main && git push origin --delete master
+REM branch 'main' set up to track 'origin/main'.
+
 exit /b %ERRORLEVEL%
 goto :EOF
 
@@ -229,10 +238,22 @@ git status | findstr /C:"Changes not staged for commit:" >NUL && git status && e
 exit /b 1
 goto :EOF
 
+:status_master
+echo %HIGH%%b%  %~0 %END% 1>&2
+
+git status | findstr /I /C:"On branch master" && exit /b 1
+exit /b 1
+goto :EOF
+
 :status_uptodate
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-git status | findstr /C:"nothing to commit" && exit /b 0
+git status | findstr /I /C:"On branch master" >NUL && exit /b 1
+git status | findstr /I /C:"Your branch is ahead" >NUL && exit /b 1
+git status | findstr /I /C:"Your branch is behind" >NUL && exit /b 1
+git status | findstr /I /C:"Changes not staged for commit" >NUL && exit /b 1
+git status | findstr /I /C:"have diverged" >NUL && exit /b 1
+git status | findstr /I /C:"nothing to commit" && exit /b 0
 
 git status
 exit /b 1
@@ -240,7 +261,10 @@ goto :EOF
 
 :add
 echo %HIGH%%b%  %~0 %END% 1>&2
+:: git rm --cached `git ls-files -i -c --exclude-from=.gitignore` 
+for /f %%a in ('git ls-files -i -c --exclude-from=.gitignore') DO git rm --cached %%a
 git add .
+git status
 exit /b %ERRORLEVEL%
 goto :EOF
 
@@ -274,7 +298,7 @@ set commitFile=%1
 set buildVersion=%2
 
 git tag -d %buildVersion%
-git push --delete origin %buildVersion%
+git push %buildVersion% --delete origin 
 git tag -a %buildVersion% --file=%commitFile%
 :: what to do with error: failed to push some refs to 'https://git/name/project'?
 
@@ -292,7 +316,7 @@ goto :EOF
 :push
 echo %HIGH%%b%  %~0 %END% 1>&2
 REM git push
-git push --tags --set-upstream origin master
+git push origin main --tags --set-upstream 
 exit /b %ERRORLEVEL%
 goto :EOF
 

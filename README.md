@@ -1,6 +1,6 @@
 # gitsync.cmd
 
-Single MSDOS batch to upload and versioning local backups of your project, with fallbacks and fast tracks
+Single MSDOS batch to upload and versioning local backups of your project, with fall-backs and fast tracks
 
 ## How To Use
 
@@ -16,5 +16,5 @@ Single MSDOS batch to upload and versioning local backups of your project, with 
 Gitsync auto-detects versions to tag for you, if you add "set version=x.y.z" somewhere in your main project batch. As you guessed, it works only for MSDOS batches.
 
 ## TODO
+- [x] merge origin main instead of master
 - [ ] detect build release version from other languages like JS or python
-

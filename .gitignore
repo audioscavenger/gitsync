@@ -1,7 +1,9 @@
 # ---> this project
+**/backup
 *.cfg_custom.cmd
-/backup
 commit.*.txt
+*.zip
+*.7z
 
 # ---> Windows
 # Windows thumbnail cache files
