@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.18
+set version=2.0.19
 set author=audioscavenger
 
 :defaults
@@ -68,15 +68,6 @@ call :commit %commitFile%
 call :push
 call :unix2dos
 goto :end
-
-REM redirect origin: git remote set-url origin https://github.com/user/gitsync
-REM git config merge.tool vimdiff
-REM git config merge.conflictstyle diff3
-REM git config mergetool.prompt false
-
-REM git config --global user.email you@example.com
-REM git commit --amend --reset-author
-
 
 :pull_ff
 echo %HIGH%%b%  %~0 %END% 1>&2
@@ -226,10 +217,7 @@ REM git branch -a
 git symbolic-ref HEAD refs/heads/main
 git remote set-head origin -a
 git remote set-head origin main
-git branch -m master main
-git branch -d master | findstr /I /C:"not fully merged" && (
-  
-)
+git branch -m master main || git branch -d master --force
 git push -u origin main
 git push origin --delete master || (
   echo:
@@ -416,3 +404,31 @@ IF DEFINED removeDangling (
   git reflog expire --expire=now --all
   git gc --prune=now
 )
+
+
+REM redirect origin: git remote set-url origin https://github.com/user/gitsync
+REM git config merge.tool vimdiff
+REM git config merge.conflictstyle diff3
+REM git config mergetool.prompt false
+
+REM git config --global user.email you@example.com
+REM git commit --amend --reset-author
+
+REM reset existing project:
+REM git init
+REM git remote add origin https://github.com/user/gitsync
+REM git fetch --force
+REM git reset --hard
+REM git clean -fd
+REM git pull --force
+
+REM also rename master to main:
+REM git symbolic-ref HEAD refs/heads/main
+REM git remote set-head origin -a
+REM git remote set-head origin main
+REM git branch -m master main || git branch -d master --force
+REM git push -u origin main
+REM git push origin --delete master || echo now switch master as default on the remote
+REM git push origin --delete master
+
+REM git pull origin main --force
