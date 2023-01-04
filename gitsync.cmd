@@ -241,7 +241,7 @@ goto :EOF
 :status_master
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-git status | findstr /I /C:"On branch master" && exit /b 1
+git status | findstr /I /C:"On branch master" && exit /b 0
 exit /b 1
 goto :EOF
 
