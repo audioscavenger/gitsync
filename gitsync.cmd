@@ -306,7 +306,7 @@ set commitFile=%1
 set buildVersion=%2
 
 git tag -d %buildVersion%
-git push --delete origin %buildVersion%
+git push --delete origin %buildVersion% 2>NUL
 :: failure to delete remote tage will simply output an error when pushing later on:
  REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
 REM error: failed to push some refs to 'https://github.com/user/project'
