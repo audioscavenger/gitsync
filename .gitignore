@@ -1,3 +1,8 @@
+# ---> this project
+*.cfg_custom.cmd
+/backup
+commit.*.txt
+
 # ---> Windows
 # Windows thumbnail cache files
 Thumbs.db

@@ -1,0 +1,11 @@
+2.0.14          release 2.0.14 moonrock
+        - git config http.postBuffer 209715200
+        	modified:   backup/gitsync.7z
+        	modified:   gitsync.cmd
+    	modified:   backup/gitsync.7z
+    	modified:   gitsync.cmd
+    	modified:   commit.gitsync.2.0.14.txt
+	modified:   .gitignore
+	modified:   backup/gitsync.7z
+	modified:   gitsync.cmd
+	modified:   commit.gitsync.2.0.14.txt
