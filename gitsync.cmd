@@ -10,6 +10,7 @@ set commitFile=commit.txt
 set editor=notepad
 set removeDangling=true
 set PROJECT=%~dp0
+set buildVersion=
 for %%a in (%PROJECT:\= %) DO set PROJECT=%%a
 
 :custom
@@ -174,7 +175,11 @@ goto :EOF
 :getBuildVersion
 echo %HIGH%%b%  %~0 %END% 1>&2
 
+REM batch:
 IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
+REM python: # version: 0.9.5
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /B /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
+
 IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /B /C:"version=" README.md') DO set buildVersion=%%v
 IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
