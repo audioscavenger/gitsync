@@ -3,7 +3,7 @@
 :: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
 set WHAT2BACKUP=.\*
 :: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
-set WHAT2EXCLUDE=-xr!backup -xr!.svn -xr!.git     -xr!*.7z -xr!*.log -xr!*.zip -xr!*.msi -xr!*.msu -xr!*.log -xr!*.exe -xr!*.dll -xr!*.bin -xr!*.mp3 -xr!*.mp4 -xr!*.wmv -xr!*.key -xr!*.crt -xr!*.crl -xr!*.pem -xr!*.cer 
+set WHAT2EXCLUDE=-xr!backup -xr!.svn -xr!.git     -xr!*.7z -xr!*.zip -xr!*.msi -xr!*.msu -xr!*.log -xr!*.exe -xr!*.dll -xr!*.bin -xr!*.mp3 -xr!*.mp4 -xr!*.wmv -xr!*.key -xr!*.crt -xr!*.crl -xr!*.pem -xr!*.cer 
 :: BACKUP_FOLDER=%~dp0\backup by default, defaine another path here
 set BACKUP_FOLDER=%~dp0\backup
 :: rotation=how many backup-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z to append to the main backup.7z before rebuilding it from scratch
