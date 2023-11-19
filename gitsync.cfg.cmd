@@ -19,6 +19,6 @@ set projectConfig=%PROJECT%.cmd
 :: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
 set buildVersionAutomated=
 :: textFiles are textFiles extensions, add your own to the list
-set textFiles=*.txt *.txt *.cmd *.bat *.pl *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.config *.json *.properties
+set textFiles=*.txt *.txt *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.config *.json *.properties
 :: is true, process textFiles with busybox unix2dos before :local_backup
 set doUnix2dos=true
