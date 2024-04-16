@@ -1,34 +1,52 @@
 @echo OFF
-pushd %~sdp0
+pushd %~dp0
 
 :top
-set version=2.0.21
+set version=2.0.22
 set author=audioscavenger
 
 :defaults
 set commitFile=commit.txt
 set editor=notepad
 set removeDangling=true
-set PROJECT=%~sdp0
+set PROJECT=%~dp0
 set buildVersion=
 for %%a in (%PROJECT:\= %) DO set PROJECT=%%a
 
 :custom
-
+:: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
+set WHAT2BACKUP=%~dp0\*
+:: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
+set WHAT2EXCLUDE=-xr!*.7z -xr!*.log -xr!.svn -xr!.git
+:: BACKUP_FOLDER=%~dp0\backup by default, defaine another path here
+set BACKUP_FOLDER=%~dp0\backup
+:: rotation=how many backup-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z to append to the main backup.7z before rebuilding it from scratch
+set rotation=20
+:: editor must be able to lock on the commit file, notepad does that, notepad++ does not. Test with your own
+set editor=notepad
+:: PROJECT= should match the root folder
+REM set PROJECT=gitsync
+:: projectConfig= can be empty == the main batch file that holds a line that says "set version=x.y.z", scrapped to fill in commit file header
+set projectConfig=%PROJECT%.cmd
+:: buildVersion= a version string like x.y.z used as header in the commit file, coming from %projectConfig%
+:: If your project does not have such a file, and buildVersionAutomated=empty, your will be prompted for a version == not unattended
+:: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
+set buildVersionAutomated=
+:: textFiles are textFiles extensions, add your own to the list
+set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
+:: is true, process textFiles with busybox unix2dos before :local_backup
+set doUnix2dos=true
 
 :prechecks
-call "%~sdpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~sdpn0.cfg.cmd" >NUL 2>&1 || (echo ERROR: missing %~sdpn0.cfg_custom.cmd & timeout /t 5 & exit /b 1)
-IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit /b 1
-
+call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
+IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
 git config core.autocrlf true
 git config http.postBuffer 209715200
-
 call :setup_time
 call :set_colors
-
 :: WIP: notepad++ unfortunately does not work with start /wait
 REM IF EXIST "%ProgramFiles%\Notepad++\notepad++.exe" set editor="%ProgramFiles%\Notepad++\notepad++.exe"
-IF NOT EXIST "%BACKUP_FOLDER%\" set BACKUP_FOLDER=%~sdp0\backup
+IF NOT EXIST "%BACKUP_FOLDER%\" set BACKUP_FOLDER=%~dp0\backup
 
 :main
 title %~n0 %version% by %author%: syncing %PROJECT%
@@ -100,7 +118,6 @@ goto :EOF
 
 :local_backup
 echo %HIGH%%b%  %~0 %END% 1>&2
-IF NOT DEFINED BACKUP_FOLDER exit /b 0
 
 md "%BACKUP_FOLDER%" 2>NUL
 del /f /q "%BACKUP_FOLDER%\%PROJECT%.7z.tmp*" 2>NUL
@@ -130,7 +147,6 @@ goto :EOF
 
 :local_backup_update
 echo %HIGH%%b%  %~0 %END% 1>&2
-IF NOT DEFINED BACKUP_FOLDER exit /b 0
 
 :: creates a new archive %PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z and writes to this archive all files from current directory which differ from files in %PROJECT%.7z archive
 :: %PROJECT%.7z archive will also be updated after.
@@ -162,7 +178,7 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 REM batch:
 IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
 REM python: # version: 0.9.5
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /B /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
 
 IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /B /C:"version=" README.md') DO set buildVersion=%%v
 IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
@@ -208,21 +224,10 @@ git remote set-head origin -a
 git remote set-head origin main
 git branch -m master main || git branch -d master --force
 git push -u origin main
-
-:: replace master with the contents of main:
-:: TODO: see if that is an actual solution to not have to do the GUI part?
-git push origin --delete master || git push origin main:master -f
 git push origin --delete master || (
   echo:
   echo NOW go to your git^>Settings^>Branches and make the %HIGH%main%end% branch the default
   pause
-  echo:
-  echo                               %HIGH%DID YOU DO IT?%END%
-  echo:
-  pause
-  REM :: replace master with the contents of main:
-  git push origin main:master -f
-  REM :: finally we can delete it entirely:
   git push origin --delete master
 )
 REM branch 'main' set up to track 'origin/main'.
@@ -306,7 +311,7 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 set commitFile=%1
 set buildVersion=%2
 
-git tag -d %buildVersion% 2>NUL
+git tag -d %buildVersion% 2>NUL || echo Tag %buildVersion% not found, creating it
 git push --delete origin %buildVersion% 2>NUL
 :: failure to delete remote tage will simply output an error when pushing later on:
  REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
