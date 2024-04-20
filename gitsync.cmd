@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.24
+set version=2.0.23
 set author=audioscavenger
 
 :defaults
@@ -33,7 +33,7 @@ set projectConfig=%PROJECT%.cmd
 :: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
 set buildVersionAutomated=
 :: textFiles are textFiles extensions, add your own to the list
-set textFiles=*.txt *.md *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.conf *.config *.json *.properties
+set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
 :: is true, process textFiles with busybox unix2dos before :local_backup
 set doUnix2dos=true
 
@@ -176,13 +176,13 @@ goto :EOF
 echo %HIGH%%b%  %~0 %END% 1>&2
 
 REM batch:
-IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /I /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
+IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /I /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
 REM python: # version: 0.9.5
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
 REM PHP
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /C:"Version: " "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2" %%v in ('findstr /C:"Version: " "%projectConfig%"') DO set buildVersion=%%v
 
-IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /B /C:"version=" README.md') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /I /B /C:"version=" README.md') DO set buildVersion=%%v
 IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
 
