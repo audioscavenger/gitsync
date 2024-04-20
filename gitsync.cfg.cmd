@@ -28,7 +28,7 @@ set projectConfig=%PROJECT%.cmd
 set buildVersionAutomated=
 
 :: textFiles are textFiles extensions, add your own to the list
-set textFiles=*.txt *.txt *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.conf *.config *.json *.properties
+set textFiles=*.txt *.md *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.conf *.config *.json *.properties
 
 :: doUnix2dos will process textFiles with busybox unix2dos before :local_backup
 :: That is, if busybox.exe is present on your system in %PATH%
