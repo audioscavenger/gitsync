@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.22
+set version=2.0.23
 set author=audioscavenger
 
 :defaults
@@ -176,9 +176,11 @@ goto :EOF
 echo %HIGH%%b%  %~0 %END% 1>&2
 
 REM batch:
-IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
+IF EXIST "%projectConfig%" for /F "tokens=3 delims== " %%v in ('findstr /I /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
 REM python: # version: 0.9.5
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
+REM PHP
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /C:"Version: " "%projectConfig%"') DO set buildVersion=%%v
 
 IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /B /C:"version=" README.md') DO set buildVersion=%%v
 IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
