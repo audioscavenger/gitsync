@@ -179,6 +179,8 @@ REM batch:
 IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /I /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
 REM python: # version: 0.9.5
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
+REM python:   version = 0.9.5
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"version = " "%projectConfig%"') DO set buildVersion=%%v
 REM PHP
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2" %%v in ('findstr /C:"Version: " "%projectConfig%"') DO set buildVersion=%%v
 
