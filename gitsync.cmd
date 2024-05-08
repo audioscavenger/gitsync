@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.23
+set version=2.0.24
 set author=audioscavenger
 
 :defaults
@@ -175,17 +175,15 @@ goto :EOF
 :getBuildVersion
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-REM batch:
-IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /I /B /C:"set version=" "%projectConfig%"') DO set buildVersion=%%v
-REM python: # version: 0.9.5
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"# version: " "%projectConfig%"') DO set buildVersion=%%v
-REM python:   version = 0.9.5
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3" %%v in ('findstr /I /C:"version = " "%projectConfig%"') DO set buildVersion=%%v
-REM PHP
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2" %%v in ('findstr /C:"Version: " "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*set version=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"          %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*version[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*version[ ][ ]*=[ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2"          %%v in ('findstr /R /I /C:"[ ]*[#/]*version[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"          %%v in ('findstr /R /I /C:"[ ]*[#/]*version[ ][ ]*[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*[#/]*version[ ][ ]*=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:" %%v in ('findstr /R /I /C:"[ ]*[#/]*version[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
 
-IF NOT DEFINED buildVersion IF EXIST README.md      for /F "tokens=2 delims== " %%v in ('findstr /I /B /C:"version=" README.md') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion set buildVersion=%buildVersionAutomated%
+IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
 
 goto :EOF
