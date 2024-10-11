@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.24
+set version=2.0.25
 set author=audioscavenger
 
 :defaults

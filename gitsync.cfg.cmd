@@ -1,4 +1,10 @@
 :: in this config file, define the specifics of your gitsync project just like a cmd file
+:: in .gitignore, add those lines:
+::     # ---> gitsync
+::     **/backup
+::     gitsync.*
+::     commit.*.txt
+::     README.cmd
 
 :: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
 ::              Make it blank to disable local backups
