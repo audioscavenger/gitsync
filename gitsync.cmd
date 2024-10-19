@@ -184,7 +184,7 @@ IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:" %%v in ('findstr /R /I /C:"[ ]*[# /]*version[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
 
 :: cleanup quotes:
-IF     DEFINED buildVersion set "buildVersion=%buildVersion:'=x%"
+IF     DEFINED buildVersion set "buildVersion=%buildVersion:'=%"
 
 IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
