@@ -24,6 +24,26 @@ Regex looked for, case insensitive:
 - \[ ]*\[#/]*version\[ ]\[ ]*=\[0-9]
 - \[ ]*\[#/]*version\[ ]\[ ]*:\[0-9]
 
+## Rename branch master to main to catter to the woke mob
+1. rename your local branch:
+`git branch -m master main`
+
+2. change the tracked branch
+
+`git fetch -p origin`
+`git branch -u origin/master main`
+
+3. change the main local branch
+
+`git remote set-head origin -a`
+
+4. remove the master branch, local and remotely:
+
+`git branch -D master`
+`git push origin :master`
+
+5. fix upstream
+`git branch --unset-upstream`
 
 
 ## TODO
