@@ -16,6 +16,7 @@ Single MSDOS batch to upload and versioning local backups of your project, with 
 Gitsync auto-detects versions to tag for you with regex, in your main project file `projectConfig`, as defined in `gitsync.cfg_custom.cmd`.
 Regex looked for, case insensitive:
 
+```
 - \[ ]*set version=\[0-9]
 - \[ ]*\[#/]\[#/]*\[ ]\[ ]*version\[:=]\[ ]\[ ]*\[0-9]
 - \[ ]*\[#/]\[#/]*\[ ]\[ ]*version\[ ]\[ ]*=\[ ]\[ ]*\[0-9]
@@ -23,6 +24,7 @@ Regex looked for, case insensitive:
 - \[ ]*\[#/]*version\[ ]\[ ]*\[:=]\[ ]\[ ]*\[0-9]
 - \[ ]*\[#/]*version\[ ]\[ ]*=\[0-9]
 - \[ ]*\[#/]*version\[ ]\[ ]*:\[0-9]
+```
 
 ## Rename branch master to main to catter to the woke mob
 1. rename your local branch:
