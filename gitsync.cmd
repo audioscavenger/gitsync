@@ -175,19 +175,21 @@ goto :EOF
 :getBuildVersion
 echo %HIGH%%b%  %~0 %END% 1>&2
 REM echo on
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*set version=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"          %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*version[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*version[ ][ ]*=[ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2"          %%v in ('findstr /R /I /C:"[ ]*[# /]*version[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"          %%v in ('findstr /R /I /C:"[ ]*[# /]*version[ ][ ]*[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims==" %%v in ('findstr /R /I /C:"[ ]*[# /]*version[ ][ ]*=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:" %%v in ('findstr /R /I /C:"[ ]*[# /]*version[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims== "  %%v in ('findstr /R /I /C:"[ ]*[set|export] %buildVersionKeyword%=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"            %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=="   %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[ ][ ]*=[ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=="   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:"   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
 
 :: cleanup quotes:
 IF     DEFINED buildVersion set "buildVersion=%buildVersion:'=%"
 
 IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
+
+REM echo buildVersion=%buildVersion%
 REM pause
 goto :EOF
 
@@ -232,13 +234,6 @@ git push -u origin main
 git push origin --delete master || (
   echo:
   echo NOW go to your git^>Settings^>Branches and make the %HIGH%main%end% branch the default
-  echo and on your other clients:
-  echo          git fetch origin
-  echo          git reset --hard origin/main
-  echo          git branch --set-upstream-to=origin/main
-  echo          git clean -xdf
-  echo          git pull
-
   pause
   git push origin --delete master
 )
