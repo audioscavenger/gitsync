@@ -27,6 +27,8 @@ set PROJECT=gitsync
 
 :: projectConfig= can be empty == the main batch file that holds a line that says "set version=x.y.z", scrapped to fill in commit file header
 set projectConfig=%PROJECT%.cmd
+:: set buildVersionKeyword whatever the version variable is, otherwise we will look for 'version='
+set buildVersionKeyword=version
 
 :: buildVersion= a version string like x.y.z used as header in the commit file, coming from %projectConfig%
 :: If your project does not have such a file, and buildVersionAutomated=empty, your will be prompted for a version == not unattended

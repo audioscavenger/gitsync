@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.25
+set version=2.0.26
 set author=audioscavenger
 
 :defaults
@@ -232,6 +232,13 @@ git push -u origin main
 git push origin --delete master || (
   echo:
   echo NOW go to your git^>Settings^>Branches and make the %HIGH%main%end% branch the default
+  echo and on your other clients:
+  echo          git fetch origin
+  echo          git reset --hard origin/main
+  echo          git branch --set-upstream-to=origin/main
+  echo          git clean -xdf
+  echo          git pull
+
   pause
   git push origin --delete master
 )
