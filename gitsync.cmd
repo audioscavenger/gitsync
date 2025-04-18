@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.26
+set version=2.0.27
 set author=audioscavenger
 
 :defaults
@@ -240,6 +240,16 @@ git push origin --delete master || (
 REM branch 'main' set up to track 'origin/main'.
 REM remote: Gitea: branch master is the default branch and cannot be deleted
 REM ! [remote rejected] master (pre-receive hook declined)
+
+REM and for all other clients, switch to main:
+REM git fetch origin
+REM git branch --unset-upstream
+REM git branch --set-upstream-to=origin/main
+REM git reset --hard origin/main
+REM git clean -d --force
+REM git checkout main
+REM git pull
+
 exit /b %ERRORLEVEL%
 goto :EOF
 
