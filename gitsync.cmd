@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.0.27
+set version=2.0.28
 set author=audioscavenger
 
 :defaults
@@ -173,18 +173,29 @@ exit /b %ERRORLEVEL%
 goto :EOF
 
 :getBuildVersion
-echo %HIGH%%b%  %~0 %END% 1>&2
+echo %HIGH%%b%  %~0 %END% 1>&2"version": "1.0.3",
 REM echo on
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims== "  %%v in ('findstr /R /I /C:"[ ]*[set|export] %buildVersionKeyword%=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"            %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=="   %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[ ][ ]*=[ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=="   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:"   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
+:: json
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:, " %%v in ('findstr /R /C:"%buildVersionKeyword%" "%projectConfig%"') DO set buildVersion=%%v
+REM x%buildVersion%x
 
 :: cleanup quotes:
 IF     DEFINED buildVersion set "buildVersion=%buildVersion:'=%"
+IF     DEFINED buildVersion set "buildVersion=%buildVersion:"=%"
 
 IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
