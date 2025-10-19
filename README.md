@@ -54,6 +54,6 @@ Regex looked for, case insensitive:
 `git push --set-upstream origin main`
 
 
-## TODO
-- [x] merge origin main instead of master
-- [x] detect build release version from other languages like JS or python
+## License
+
+AGPL-3.0-only

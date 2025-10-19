@@ -2,24 +2,24 @@
 pushd %~dp0
 
 :top
-set version=2.0.28
+set version=v2.1.2
 set author=audioscavenger
 
 :defaults
-set commitFile=commit.txt
 set editor=notepad
 set removeDangling=true
 set PROJECT=%~dp0
 set buildVersion=
+set buildName=
 for %%a in (%PROJECT:\= %) DO set PROJECT=%%a
 
 :custom
 :: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
-set WHAT2BACKUP=%~dp0\*
+set WHAT2BACKUP=.\*
 :: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
 set WHAT2EXCLUDE=-xr!*.7z -xr!*.log -xr!.svn -xr!.git
-:: BACKUP_FOLDER=%~dp0\backup by default, defaine another path here
-set BACKUP_FOLDER=%~dp0\backup
+:: BACKUP_FOLDER=%~dp0backup by default, defaine another path here
+set BACKUP_FOLDER=%~dp0backup
 :: rotation=how many backup-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z to append to the main backup.7z before rebuilding it from scratch
 set rotation=20
 :: editor must be able to lock on the commit file, notepad does that, notepad++ does not. Test with your own
@@ -38,6 +38,9 @@ set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
 set doUnix2dos=true
 
 :prechecks
+where git >NUL  || (echo ERROR: git.exe not found & timeout /t 5 & exit 1)
+where gh >NUL   || (echo ERROR: gh.exe not found & timeout /t 5 & exit 1)
+
 call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
 IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
 git config core.autocrlf true
@@ -52,7 +55,8 @@ IF NOT EXIST "%BACKUP_FOLDER%\" set BACKUP_FOLDER=%~dp0\backup
 title %~n0 %version% by %author%: syncing %PROJECT%
 call :getBuildVersion
 call :local_backup
-
+set commitFile=%BACKUP_FOLDER%\commit.%PROJECT%.%buildVersion%.txt
+call :unix2dos
 call :fetch
 call :status_uptodate && goto :end
 call :status_master   && call :rename_master
@@ -63,11 +67,13 @@ call :status_diverged && call :pull_merge
 call :status_uptodate && goto :end
 call :status_modified && call :add
 call :commitMessage
-call :local_backup_named %commitFile% %buildName%
-call :createTag %commitFile% %buildVersion%
+call :local_backup_named "%buildName%"
+call :createTag %commitFile% %releaseVersion%
 call :commit %commitFile%
 call :push
-call :unix2dos
+IF DEFINED releaseVersion (
+  call :createRelease %commitFile% %buildVersion%
+)
 goto :end
 
 :pull_ff
@@ -158,10 +164,9 @@ echo:%END% 1>&2
 
 goto :EOF
 
-:local_backup_named commitFile buildName
+:local_backup_named "buildName"
 echo %HIGH%%b%  %~0 %END% 1>&2
-set commitFile=%1
-set buildName=%2
+set buildName=%~1
 
 IF DEFINED buildName (
   IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" (
@@ -173,21 +178,23 @@ exit /b %ERRORLEVEL%
 goto :EOF
 
 :getBuildVersion
-echo %HIGH%%b%  %~0 %END% 1>&2"version": "1.0.3",
+echo %HIGH%%b%  %~0 %END% 1>&2
+
 REM echo on
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims== "  %%v in ('findstr /R /I /C:"[ ]*[set|export] %buildVersionKeyword%=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims== "  %%v in ('findstr /R /I /C:"[ ]*[set|export] %buildVersionKeyword%=[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"            %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[:=][ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3"            %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[:=][ ][ ]*[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=="   %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[ ][ ]*=[ ][ ]*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=="   %%v in ('findstr /R /I /C:"[ ]*[#/][#/]*[ ][ ]*%buildVersionKeyword%[ ][ ]*=[ ][ ]*[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[:=][ ']*[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*[:=][ ']*[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims=:= " %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*[:=][ ']*[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=="   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*=[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=="   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*=[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
-IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:"   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*:[0-9]" "%projectConfig%"') DO set buildVersion=%%v
+IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:"   %%v in ('findstr /R /I /C:"[ ]*[# /]*%buildVersionKeyword%[ ][ ]*:[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
 :: json
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=2 delims=:, " %%v in ('findstr /R /C:"%buildVersionKeyword%" "%projectConfig%"') DO set buildVersion=%%v
@@ -196,12 +203,53 @@ REM x%buildVersion%x
 :: cleanup quotes:
 IF     DEFINED buildVersion set "buildVersion=%buildVersion:'=%"
 IF     DEFINED buildVersion set "buildVersion=%buildVersion:"=%"
+echo buildVersion=%buildVersion%
 
 IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
 
-REM echo buildVersion=%buildVersion%
+
+:: get version number when it's a release; then we set releaseVersion == flag for a release
+IF     "%buildVersion:~0,1%"=="v" set releaseVersion=%buildVersion:~1%
+echo releaseVersion=%releaseVersion%
+call :getPreviousVersion %releaseVersion%
+
+REM echo off
 REM pause
+
+goto :EOF
+
+:getPreviousVersion releaseVersion
+echo %HIGH%%b%  %~0 %END% 1>&2
+
+IF NOT DEFINED releaseVersion exit /b 0
+for /f "tokens=1,2,3 delims=." %%a in ("%releaseVersion%") DO (
+  set versionMajor=%%a
+  set versionMinor=%%b
+  set versionPatch=%%c
+)
+
+:: now we guestimate the previous version. This will only work for 3 numbers AND Minor increases. 
+:: We cannot guess when Major increases because it's up to the maintainer
+set /A versionPatchPrevious=versionPatch - 1
+:: case for 1.1.99 -> 1.2.0 = we will   look for 1.1.*
+:: case for 1.0.99 -> 1.1.0 = we will   look for 1.0.*
+IF %versionPatchPrevious% LSS 0 (
+  set versionPatchPrevious=[0-9]+
+  set /A versionMinorPrevious=versionMinor - 1
+) ELSE set versionMinorPrevious=%versionMinor%
+
+:: case for 1.0.99 -> 1.1.0 = we shall  look for 1.0.* BUT stop at the next v1.* line
+:: case for 1.8.99 -> 2.0.0 = we shall  look for 1.8.* BUT we cannot know that
+::    all we can do is grab lines with 1.*.*
+::    we could solve this by looking at the previous release from git or local commit files
+IF %versionMinorPrevious% LSS 0 (
+  set versionMinorPrevious=[0-9]+
+  set /A versionMajorPrevious=versionMajor - 1
+) ELSE set versionMajorPrevious=%versionMajor%
+
+echo previousVersion=%versionMajorPrevious%.%versionMinorPrevious%.%versionPatchPrevious%
+
 goto :EOF
 
 :fetch
@@ -244,7 +292,7 @@ git branch -m master main || git branch -d master --force
 git push -u origin main
 git push origin --delete master || (
   echo:
-  echo NOW go to your git^>Settings^>Branches and make the %HIGH%main%end% branch the default
+  echo NOW go to your git^>Settings^>Branches and make the main branch the default
   pause
   git push origin --delete master
 )
@@ -313,23 +361,37 @@ goto :EOF
 :commitMessage
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-set commitFile=commit.%PROJECT%.%buildVersion%.txt
-
 :: get remote message over local message; we must assume that the remote is always the current one
 git tag -l %buildVersion% -n999 >%commitFile%
 call :isEmpty %commitFile% && echo Pulling message for tag %buildVersion%: EMPTY || echo Pulling message for tag %buildVersion%: EXIST
 
 :: we now reuse older commitFile if exist. Commit again over same version will also recreate the tag
-call :isEmpty %commitFile% && echo WIP %buildVersion% >%commitFile%
-:: we now append modifications to the same commit message and replace the tag each time. Makes more sense.
-git status | findstr "modified: deleted:" >>%commitFile%
+IF DEFINED releaseVersion (
+  REM :: release!
+  call :isEmpty %commitFile% && echo %buildVersion% release >%commitFile%
+  
+  REM :: now we extract all the previous patch version lines from that file
+  REM :: this works only if the lines start with "* [x] 1.0.7.x .. message.."
+  echo ddebug IF EXIST CONTRIBUTING.md busybox grep -E "^\* \[x\] %versionMajorPrevious%.%versionMinorPrevious%.%versionPatchPrevious%" CONTRIBUTING.md
+  IF EXIST CONTRIBUTING.md busybox grep -E "^\* \[x\] [v]?%versionMajorPrevious%.%versionMinorPrevious%.%versionPatchPrevious%" CONTRIBUTING.md | busybox sed -n "/\* \[x\] v[0-9]\./q;p" >>%commitFile%
+  
+) ELSE (
+  REM :: just a commit
+  call :isEmpty %commitFile% && echo %buildVersion% WIP >%commitFile%
+  REM :: now we append found dev notes for that version
+  IF EXIST CONTRIBUTING.md busybox grep -E "^\* \[x\] %buildVersion%" CONTRIBUTING.md >>%commitFile%
+  REM :: now we append modifications to the same commit message and replace the tag each time. Makes more sense.
+  git status | findstr "modified: deleted:" >>%commitFile%
+)
 
-:: insert smth like "release 1.2.3 tidy" or "WIP 1.2.3" as the first line
+:: insert smth like "v1.2.3 tidy" or "1.2.3 WIP" as the first line; 
+:: named differential zipfile will be created if buildName != WIP
+:: buildVersion starting with a v triggers the release
 start "" /wait %editor% %commitFile%
 
 :: if you input smth like "release 1.2.3 tidy" as the first line, buildName=tidy and a named differential zipfile will be created
-set buildName=
-for /f "tokens=3*" %%n in ('findstr /B release %commitFile%') DO set "buildName=%%n"
+for /f "tokens=2*" %%n in ('findstr /B v %commitFile%') DO set "buildName=%%n"
+IF /I "%buildName%"=="WIP" set buildName=
 
 exit /b %ERRORLEVEL%
 goto :EOF
@@ -348,6 +410,21 @@ REM hint: Updates were rejected because the tag already exists in the remote.
 
 git tag -a %buildVersion% --file=%commitFile%
 :: what to do with error: failed to push some refs to 'https://git/name/project'?
+
+exit /b %ERRORLEVEL%
+goto :EOF
+
+:createRelease commitFile buildVersion
+echo %HIGH%%b%  %~0 %END% 1>&2
+set commitFile=%1
+set buildVersion=%2
+
+IF NOT "%buildVersion:~0,1%"=="v" exit /b 1
+
+set /p title=< %commitFile%
+
+echo gh release create %buildVersion% --title "%title%" -F %commitFile%
+gh release create %buildVersion% --title "%title%" -F %commitFile%
 
 exit /b %ERRORLEVEL%
 goto :EOF
@@ -439,7 +516,7 @@ IF DEFINED removeDangling (
   git reflog expire --expire=now --all
   git gc --prune=now
 )
-
+exit /b 0
 
 REM redirect origin: git remote set-url origin https://github.com/user/gitsync
 REM git config merge.tool vimdiff
@@ -467,3 +544,5 @@ REM git push origin --delete master || echo now switch master as default on the 
 REM git push origin --delete master
 
 REM git pull origin main --force
+
+
