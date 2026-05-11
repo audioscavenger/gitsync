@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=v2.1.2
+set version=v2.1.3
 set author=audioscavenger
 
 :defaults
@@ -38,8 +38,8 @@ set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
 set doUnix2dos=true
 
 :prechecks
-where git >NUL  || (echo ERROR: git.exe not found & timeout /t 5 & exit 1)
-where gh >NUL   || (echo ERROR: gh.exe not found & timeout /t 5 & exit 1)
+where git >NUL  || (echo ERROR: git.exe not found: https://git-scm.com/install/windows & timeout /t 10 & exit 1)
+where gh >NUL   || (echo ERROR: gh.exe not found:  https://cli.github.com/ & timeout /t 10 & exit 1)
 
 call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
 IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
@@ -455,7 +455,19 @@ goto :EOF
 
 :unix2dos
 echo %HIGH%%b%  %~0 %END% 1>&2
-IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
+IF /I NOT "%doUnix2dos%"=="true" exit /b 0
+
+where busybox >NUL 2>&1 || (echo ERROR: busybox not found & timetout /t 2 & exit /b 1)
+
+FOR /f "tokens=*" %%F in ('dir /b /s %textFiles% ^| find /c /v "") DO set count=%%F
+
+<nul set /p="unix2dos Processing %count% files: "
+FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO (
+  busybox unix2dos "%%~F"
+  <nul set /p="."
+)
+
+echo.
 goto :EOF
 
 :set_colors
