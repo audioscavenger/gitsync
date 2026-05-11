@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=v2.1.3
+set version=v2.1.4
 set author=audioscavenger
 
 :defaults
@@ -157,10 +157,13 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 :: creates a new archive %PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z and writes to this archive all files from current directory which differ from files in %PROJECT%.7z archive
 :: %PROJECT%.7z archive will also be updated after.
 
-echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
-7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
+REM echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
+REM 7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
+echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
+7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
 echo:%END% 1>&2
-7z t "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z"
+REM 7z t "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z"
+7z t "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z"
 
 goto :EOF
 
@@ -169,8 +172,10 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 set buildName=%~1
 
 IF DEFINED buildName (
-  IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" (
-    move /y "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%-%buildName%.7z" >NUL 2>&1
+  REM IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" (
+    REM move /y "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%-%buildName%.7z" >NUL 2>&1
+  IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" (
+    move /y "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%-%buildName%.7z" >NUL 2>&1
   )
 )
 
