@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=v2.1.4
+set version=v2.1.5
 set author=audioscavenger
 
 :defaults
@@ -464,7 +464,7 @@ IF /I NOT "%doUnix2dos%"=="true" exit /b 0
 
 where busybox >NUL 2>&1 || (echo ERROR: busybox not found & timetout /t 2 & exit /b 1)
 
-FOR /f "tokens=*" %%F in ('dir /b /s %textFiles% ^| find /c /v "") DO set count=%%F
+FOR /f %%F in ('dir /b /s %textFiles% ^| find /c /v ""') DO set count=%%F
 
 <nul set /p="unix2dos Processing %count% files: "
 FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO (
@@ -533,6 +533,8 @@ IF DEFINED removeDangling (
   git reflog expire --expire=now --all
   git gc --prune=now
 )
+
+timeout /t 10
 exit /b 0
 
 REM redirect origin: git remote set-url origin https://github.com/user/gitsync
