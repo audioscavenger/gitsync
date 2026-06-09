@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=v2.1.5
+set version=2.1.6
 set author=audioscavenger
 
 :defaults
@@ -42,7 +42,7 @@ where git >NUL  || (echo ERROR: git.exe not found: https://git-scm.com/install/w
 where gh >NUL   || (echo ERROR: gh.exe not found:  https://cli.github.com/ & timeout /t 10 & exit 1)
 
 call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
-IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 5 & exit 1
+IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 10 & exit 1
 git config core.autocrlf true
 git config http.postBuffer 209715200
 call :setup_time
@@ -68,7 +68,7 @@ call :status_uptodate && goto :end
 call :status_modified && call :add
 call :commitMessage
 call :local_backup_named "%buildName%"
-call :createTag %commitFile% %releaseVersion%
+call :createTag %commitFile% %buildVersion%
 call :commit %commitFile%
 call :push
 IF DEFINED releaseVersion (
@@ -154,16 +154,17 @@ goto :EOF
 :local_backup_update
 echo %HIGH%%b%  %~0 %END% 1>&2
 
-:: creates a new archive %PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z and writes to this archive all files from current directory which differ from files in %PROJECT%.7z archive
+:: creates a new archive %PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z and writes to this archive all files from current directory which differ from files in %PROJECT%.7z archive
 :: %PROJECT%.7z archive will also be updated after.
 
-REM echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
-REM 7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
-echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
-7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
+echo %c%7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" %WHAT2BACKUP% %HIGH%%k%%WHAT2EXCLUDE%
+7z u "%BACKUP_FOLDER%\%PROJECT%.7z" -ms=off -bso0 -bsp2 -up0q3x2z0!"%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" %WHAT2BACKUP% %WHAT2EXCLUDE%
 echo:%END% 1>&2
-REM 7z t "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z"
-7z t "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z"
+
+IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" (
+  echo 7z t "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" ^| findstr /C:"No files" 
+  7z t "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" | findstr /C:"No files" && del /f /q "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z"
+)
 
 goto :EOF
 
@@ -172,10 +173,8 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 set buildName=%~1
 
 IF DEFINED buildName (
-  REM IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" (
-    REM move /y "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z" "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%-%buildName%.7z" >NUL 2>&1
-  IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" (
-    move /y "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%.7z" "%BACKUP_FOLDER%\%PROJECT%-%buildVersion%-%buildName%.7z" >NUL 2>&1
+  IF EXIST "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" (
+    move /y "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%.7z" "%BACKUP_FOLDER%\%PROJECT%-%CURRENT_DATE_NOSEP%-%buildVersion%-%buildName%.7z" >NUL 2>&1
   )
 )
 
@@ -184,8 +183,6 @@ goto :EOF
 
 :getBuildVersion
 echo %HIGH%%b%  %~0 %END% 1>&2
-
-REM echo on
 
 IF NOT DEFINED buildVersion IF EXIST "%projectConfig%" for /F "tokens=3 delims== "  %%v in ('findstr /R /I /C:"[ ]*[set|export] %buildVersionKeyword%=[v0-9]" "%projectConfig%"') DO set buildVersion=%%v
 REM x%buildVersion%x
@@ -406,13 +403,18 @@ echo %HIGH%%b%  %~0 %END% 1>&2
 set commitFile=%1
 set buildVersion=%2
 
+echo git tag -d %buildVersion% 1>&2
 git tag -d %buildVersion% 2>NUL || echo Tag %buildVersion% not found, creating it
+
+echo git push --delete origin %buildVersion% 1>&2
 git push --delete origin %buildVersion% 2>NUL
+
 :: failure to delete remote tage will simply output an error when pushing later on:
  REM ! [rejected]        7.2.19 -> 7.2.19 (already exists)
 REM error: failed to push some refs to 'https://github.com/user/project'
 REM hint: Updates were rejected because the tag already exists in the remote.
 
+echo git tag -a %buildVersion% --file=%commitFile% 1>&2
 git tag -a %buildVersion% --file=%commitFile%
 :: what to do with error: failed to push some refs to 'https://git/name/project'?
 
@@ -460,19 +462,7 @@ goto :EOF
 
 :unix2dos
 echo %HIGH%%b%  %~0 %END% 1>&2
-IF /I NOT "%doUnix2dos%"=="true" exit /b 0
-
-where busybox >NUL 2>&1 || (echo ERROR: busybox not found & timetout /t 2 & exit /b 1)
-
-FOR /f %%F in ('dir /b /s %textFiles% ^| find /c /v ""') DO set count=%%F
-
-<nul set /p="unix2dos Processing %count% files: "
-FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO (
-  busybox unix2dos "%%~F"
-  <nul set /p="."
-)
-
-echo.
+IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
 goto :EOF
 
 :set_colors
@@ -534,7 +524,7 @@ IF DEFINED removeDangling (
   git gc --prune=now
 )
 
-timeout /t 10
+timeout /t 5
 exit /b 0
 
 REM redirect origin: git remote set-url origin https://github.com/user/gitsync
