@@ -36,7 +36,9 @@ set buildVersionKeyword=version
 set buildVersionAutomated=
 
 :: textFiles are textFiles extensions, add your own to the list
-set textFiles=*.txt *.md *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.sql *.xml *.yml *.yaml *.conf *.config *.json *.properties
+ *.properties
+REM removed *.sql because sqlite3 database were also corrupted, as 8.3 filenames for *.sqlite3 would return as xxxxx~1.sql
+set textFiles=*.txt *.md *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.xml *.yml *.yaml *.conf *.config *.json *.properties
 
 :: doUnix2dos will process textFiles with busybox unix2dos before :local_backup
 :: That is, if busybox.exe is present on your system in %PATH%
