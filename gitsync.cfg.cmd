@@ -1,6 +1,6 @@
 :: in this config file, define the specifics of your gitsync project just like a cmd file
 :: in .gitignore, add those lines:
-::     # ---> gitsync
+::     # ---> gitsync
 ::     **/backup
 ::     gitsync.*
 ::     commit.*.txt
@@ -10,8 +10,8 @@
 ::              Make it blank to disable local backups
 set WHAT2BACKUP=.\*
 
-:: BACKUP_FOLDER=%~dp0\backup by default, defaine another path here
-set BACKUP_FOLDER=%~dp0\backup
+:: BACKUP_FOLDER=%~dp0backup by default, define another path here
+set BACKUP_FOLDER=%~dp0backup
 
 :: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
 set WHAT2EXCLUDE=-xr!backup -xr!.svn -xr!.git     -xr!*.7z -xr!*.zip -xr!*.msi -xr!*.msu -xr!*.log -xr!*.exe -xr!*.dll -xr!*.bin -xr!*.mp3 -xr!*.mp4 -xr!*.wmv -xr!*.key -xr!*.crt -xr!*.crl -xr!*.pem -xr!*.cer 
@@ -36,11 +36,13 @@ set buildVersionKeyword=version
 set buildVersionAutomated=
 
 :: textFiles are textFiles extensions, add your own to the list
- *.properties
 REM removed *.sql because sqlite3 database were also corrupted, as 8.3 filenames for *.sqlite3 would return as xxxxx~1.sql
-set textFiles=*.txt *.md *.cmd *.bat *.pl *.py *.awk *.ps1 *.ini *.cfg *.xml *.yml *.yaml *.conf *.config *.json *.properties
+set textFilesUnix=*.txt *.md *.pl *.py *.ps1 *.ini *.cfg *.xml *.conf *.json *.*js* *.y*ml *.sh *.css *.html *.py
+set textFilesDos=*.cmd *.bat *.awk
+set textFilesExclude=node_modules dist .git .github backup .continue .agents assets config
 
 :: doUnix2dos will process textFiles with busybox unix2dos before :local_backup
 :: That is, if busybox.exe is present on your system in %PATH%
 :: This will reset the Archive attribute and the modified time
-set doUnix2dos=true
+set doUnix2dos=false
+set doDos2Unix=true

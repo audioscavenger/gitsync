@@ -2,7 +2,7 @@
 pushd %~dp0
 
 :top
-set version=2.1.7
+set version=2.1.8
 set author=audioscavenger
 
 :defaults
@@ -33,9 +33,13 @@ set projectConfig=%PROJECT%.cmd
 :: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
 set buildVersionAutomated=
 :: textFiles are textFiles extensions, add your own to the list
-set textFiles=*.cmd *.bat *.ini *.cfg *.config *.properties
+set textFilesUnix=*.txt *.md *.pl *.py *.ps1 *.ini *.cfg *.xml *.conf *.json *.*js* *.y*ml *.sh *.css *.html
+set textFilesDos=*.cmd *.bat *.awk
+set textFilesExclude=node_modules dist .git backup .continue
 :: is true, process textFiles with busybox unix2dos before :local_backup
-set doUnix2dos=true
+set doUnix2dos=false
+set doDos2Unix=false
+REM git config core.autocrlf false
 
 :prechecks
 where git >NUL  || (echo ERROR: git.exe not found: https://git-scm.com/install/windows & timeout /t 10 & exit 1)
@@ -462,7 +466,12 @@ goto :EOF
 
 :unix2dos
 echo %HIGH%%b%  %~0 %END% 1>&2
-IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFiles%') DO busybox unix2dos "%%~F"
+IF /I "%doUnix2dos%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFilesDos% ^| findstr /V "%textFilesExclude%"') DO busybox unix2dos "%%~F"
+goto :EOF
+
+:dos2unix
+echo %HIGH%%b%  %~0 %END% 1>&2
+IF /I "%doDos2Unix%"=="true" where busybox >NUL 2>&1 && FOR /f "tokens=*" %%F in ('dir /b /s %textFilesUnix% ^| findstr /V "%textFilesExclude%"') DO busybox dos2unix "%%~F"
 goto :EOF
 
 :set_colors
