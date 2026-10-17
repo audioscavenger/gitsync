@@ -1,8 +1,16 @@
-## BUGS:
+# Known BUGS:
 
-* [ ] - 
+* [ ] - None atm
+
+# Changelog
+
+The list is in reverse order, as you naturally read from top to bottom.
 
 ## TODO:
+
+* [ ] - None atm
+
+## DONE:
 
 The list is in reverse order, as you naturally read from top to bottom.
 

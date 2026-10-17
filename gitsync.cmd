@@ -2,32 +2,34 @@
 pushd %~dp0
 
 :top
-set version=2.1.8
+set version=v2.1.9
 set author=audioscavenger
 
 :defaults
 set editor=notepad
 set removeDangling=true
-set PROJECT=%~dp0
 set buildVersion=
 set buildName=
+set PROJECT=%~dp0
 for %%a in (%PROJECT:\= %) DO set PROJECT=%%a
 
 :custom
 :: WHAT2BACKUP= list of files and subfolders to backup, default is everything recursively
 set WHAT2BACKUP=.\*
 :: WHAT2EXCLUDE= list of files and subfolders to exclude, 7z format
-set WHAT2EXCLUDE=-xr!*.7z -xr!*.log -xr!.svn -xr!.git
-:: BACKUP_FOLDER=%~dp0backup by default, defaine another path here
-set BACKUP_FOLDER=%~dp0backup
+set WHAT2EXCLUDE=-xr!backup -xr!.svn -xr!.git -xr!*.7z -xr!*.zip -xr!*.msi -xr!*.msu -xr!*.log -xr!*.exe -xr!*.dll -xr!*.bin -xr!*.mp3 -xr!*.mp4 -xr!*.wmv -xr!*.key -xr!*.crt -xr!*.crl -xr!*.pem -xr!*.cer 
+:: BACKUP_FOLDER stores rotation of backups: the whole project + diff files
+set BACKUP_FOLDER=%~sdp0backup
 :: rotation=how many backup-%CURRENT_DATE_NOSEP%-%CURRENT_TIME%.7z to append to the main backup.7z before rebuilding it from scratch
 set rotation=20
 :: editor must be able to lock on the commit file, notepad does that, notepad++ does not. Test with your own
 set editor=notepad
 :: PROJECT= should match the root folder
-REM set PROJECT=gitsync
+REM set PROJECT=
 :: projectConfig= can be empty == the main batch file that holds a line that says "set version=x.y.z", scrapped to fill in commit file header
 set projectConfig=%PROJECT%.cmd
+:: set buildVersionKeyword whatever the version variable is, otherwise we will look for 'version='
+set buildVersionKeyword=version
 :: buildVersion= a version string like x.y.z used as header in the commit file, coming from %projectConfig%
 :: If your project does not have such a file, and buildVersionAutomated=empty, your will be prompted for a version == not unattended
 :: setting up buildVersionAutomated=x.y.z avoids this prompt pause, if you want this script to be fully unattended and not have a projectConfig file
@@ -35,17 +37,20 @@ set buildVersionAutomated=
 :: textFiles are textFiles extensions, add your own to the list
 set textFilesUnix=*.txt *.md *.pl *.py *.ps1 *.ini *.cfg *.xml *.conf *.json *.*js* *.y*ml *.sh *.css *.html
 set textFilesDos=*.cmd *.bat *.awk
-set textFilesExclude=node_modules dist .git backup .continue
+set textFilesExclude=node_modules dist .git .github backup .continue assets config
 :: is true, process textFiles with busybox unix2dos before :local_backup
 set doUnix2dos=false
 set doDos2Unix=false
 REM git config core.autocrlf false
+REM git config --global core.autocrlf true
+REM git add --renormalize .
+
 
 :prechecks
 where git >NUL  || (echo ERROR: git.exe not found: https://git-scm.com/install/windows & timeout /t 10 & exit 1)
 where gh >NUL   || (echo ERROR: gh.exe not found:  https://cli.github.com/ & timeout /t 10 & exit 1)
 
-call "%~dpn0.cfg_custom.cmd" >NUL 2>&1 || call "%~dpn0.cfg.cmd" >NUL 2>&1
+call "%~dpn0.cfg_custom.cmd" >NUL 2>&1
 IF "%~d0"=="%PROJECT%\" echo ERROR: this cannot work at the root drive without a PROJECT name & timeout /t 10 & exit 1
 git config core.autocrlf true
 git config http.postBuffer 209715200
@@ -212,6 +217,7 @@ IF     DEFINED buildVersion set "buildVersion=%buildVersion:"=%"
 echo buildVersion=%buildVersion%
 
 IF NOT DEFINED buildVersion IF DEFINED buildVersionAutomated set buildVersion=%buildVersionAutomated%
+IF NOT DEFINED PROJECT      set /p PROJECT=PROJECT? 
 IF NOT DEFINED buildVersion set /p buildVersion=buildVersion? 
 
 
